@@ -115,7 +115,8 @@ if [ "$OPCAO" == "1" ]; then
     read -p "Digite a quantidade de memória em MB (ex: 2048): " RAM
     read -p "Digite a quantidade de CPUs: " CPU
 
-    qm create $VMID --name $VMNAME --memory $RAM --cores $CPU --net0 virtio,bridge=vmbr0 \
+    qm create $VMID --name $VMNAME --memory $RAM --cores $CPU \
+        --net0 virtio,bridge=vmbr0 \
         --ide2 ${STORAGE_LOCAL}:iso/${ISO_ESCOLHIDO},media=cdrom --boot order=ide2 \
         --scsihw virtio-scsi-pci --scsi0 ${DISK_STORAGE}:${DISK} --bios seabios
 
@@ -125,6 +126,7 @@ if [ "$OPCAO" == "1" ]; then
     if [ $? -eq 0 ]; then
         qm start $VMID
         echo "✅ VM $VMNAME (ID: $VMID) criada, KVM desabilitado (BIOS SeaBIOS) e iniciada."
+        echo "⚠️ Lembre-se: o SO instalado na VM deve estar configurado para usar DHCP."
     else
         echo "❌ Erro ao criar a VM."
     fi
@@ -160,11 +162,12 @@ if [ "$OPCAO" == "2" ]; then
 
     pct create $CTID ${STORAGE_LOCAL}:vztmpl/${TEMPLATE_ESCOLHIDO} \
         -hostname $CTNAME -password $CTPASS -rootfs ${DISK_STORAGE}:${DISK} \
-        -memory $RAM -cores $CPU -net0 name=eth0,bridge=vmbr0
+        -memory $RAM -cores $CPU \
+        -net0 name=eth0,bridge=vmbr0,ip=dhcp
 
     if [ $? -eq 0 ]; then
         pct start $CTID
-        echo "✅ Container $CTNAME (ID: $CTID) criado e iniciado com sucesso."
+        echo "✅ Container $CTNAME (ID: $CTID) criado com DHCP e iniciado com sucesso."
     else
         echo "❌ Erro ao criar o container."
     fi
